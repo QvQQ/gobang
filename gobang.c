@@ -3,30 +3,31 @@
 #include <string.h>
 #include <time.h>
 
-#define INCECO 10  // increasing coefficient
-#define TS 3      // table size
-#define CON 3    // win condition
-#define ML 0    // printf max level 0 == all
-#define GL TS*TS    // generate level 0 == none, up to TS*TS
+#define INCECO 10   // increasing coefficient
+#define TS  3      // table size
+#define CON 3     // win condition
+#define ML  0    // printf max level 0 == all
+#define GL  TS*TS    // generate level 0 == none, up to TS*TS
 
-typedef struct multitree {
+typedef struct gametree {
 
-	struct multitree *prev;
-	struct multitree **branch;
-	int _nbranch;
+	struct gametree *prev;
+	struct gametree **branch;
+	int _nbranch; long _sleaf;
 	int nleaf;
-	int rate;
+	int score;
+	int alpha; int beta;
 	void *leaf;
+} gtree;
 
-} mtree;
-
-int decide(mtree *);
-void *getNext(void *, const long, const int);
-mtree *generate();
-void mt_prt(mtree *const, char *, const int, const int);
-mtree *mt_cre(const void *, const long);
-mtree *mt_add(mtree *const, const void *, const long);
-int mt_del(mtree *);
+void  *solve(gtree *, int);
+int    decide(gtree *);
+void  *getNext(void *, const long, const int);
+gtree *generate();
+void   gt_prt(gtree *const, const int);
+gtree *gt_cre(const void *, const long);
+gtree *gt_add(gtree *const, const void *, const long);
+int    gt_del(gtree *);
 
 unsigned long long m = 0, f = 0, n = 0, k = 0;
 
@@ -36,20 +37,21 @@ int main() {
 
 	start = time(NULL);
 
-	mtree *well = generate();
+	//gtree *well = generate();
 
-	int i = 0; mtree *mt = well;
-	while (mt->nleaf) {
-		do {
-			for (int j = i = 0; j < mt->nleaf; ++j) {
-				i = (mt->branch[j]->rate > mt->branch[i]->rate) ? j : i;
-			}
-			mt_del(mt->branch[i]);
-		} while (mt->nleaf != 1);
-		mt = mt->branch[0];
-	}
-	mt_prt(well, (char *)memset(malloc(sizeof(char)), 0, sizeof(char)), 0, ML);
-	mt_del(well);
+	int p[][TS] = {
+		{1, 0, 0},
+		{0, 1, 0},
+		{ -1, -1, 0}
+	};
+
+	gtree *input = gt_cre((void *)p, sizeof(p));
+	void *solution = solve(input, 0);
+	gtree *output = gt_cre(solution, sizeof(int) * TS * TS);
+
+	gt_prt(input, 0);
+	gt_del(input);
+	gt_del(output);
 
 	printf("\nmalloc:%lld, free:%llu\n", m, f);
 	printf("\nknots:%lld, iterations:%llu\n", k, n);
@@ -58,57 +60,89 @@ int main() {
 	return 0;
 }
 
-int decide(mtree *mt) { // 判断结果(1结束，0未完成)，并赋值rate
+void *solve(gtree *root, int depth) {
 
-	int(*p)[TS] = (int(*)[TS])mt->leaf;
+	if (!root) return NULL;
+	if (!depth) depth = TS * TS;
+	if (depth > TS * TS || depth < 0) return root->leaf;
 
-	int i, j;
+	gtree *curgt = root;
+	int (*p)[TS] = (int (*)[TS])root->leaf;
+	int *re = (int *)calloc(1, sizeof(int) * depth);
+	int curdep = 0;
+
+	int n = 0;
+	do {
+		while (curdep < depth && !decide(curgt)) {
+			printf("curdep:%d\n\n", curdep);
+			void *next = getNext(curgt->leaf, curgt->_sleaf, re[curdep] + 1);
+			if (!next) exit(-221);
+			gt_add(curgt, next, curgt->_sleaf); if (next) f++;
+			free(next);
+			curgt = curgt->branch[re[curdep++]++];
+		}
+		curgt = curgt->prev;
+		--curdep;
+	} while (n++ < 3);
+
+	return (void *)p;
+}
+
+int evaluate(gtree *gt) { //////
+
+	return rand();
+}
+
+int decide(gtree *gt) { // 判断结果(1结束，0未完成)，并赋值rate
+
+	int(*p)[TS] = (int(*)[TS])gt->leaf;
+
+	int i, j, n = 0;
 	for (i = 0; i < TS; ++i) {
 		for (j = 0; j < TS; ++j) {
 			int sum;
-		//row:
+			//row:
 			if (j <= TS - CON) {
 				for (int k = sum = 0; k < CON; ++k)
 					sum += p[i][j + k];
 				if (abs(sum) == CON)
 					goto end;
 			}
-		//col:
+			//col:
 			if (i <= TS - CON) {
 				for (int k = sum = 0; k < CON; ++k)
 					sum += p[i + k][j];
 				if (abs(sum) == CON)
 					goto end;
 			}
-		//sla:
+			//sla:
 			if (i >= CON - 1 && j <= TS - CON) {
 				for (int k = sum = 0; k < CON; ++k)
 					sum += p[i - k][j + k];
 				if (abs(sum) == CON)
 					goto end;
 			}
-		//bsla:
+			//bsla:
 			if (i <= TS - CON && j <= TS - CON) {
 				for (int k = sum = 0; k < CON; ++k)
 					sum += p[i + k][j + k];
 				if (abs(sum) == CON)
 					goto end;
+				++n;
 			}
 		}
 	}
-	return 0;
-
+	return n == TS * TS;
 end:
-	for (mtree *k = mt; k != NULL; k = k->prev)
-		k->rate += p[i][j];
+	for (gtree *k = gt; k != NULL; k = k->prev)
+		k->score += p[i][j];
 	return 1;
 }
 
 void *getNext(void *vprev, const long size, const int priority) {
 
 	// 判断谁的回合，和为1则白，和为0则黑
-
-	int *prev = (int *)memcpy(malloc(size), vprev, size); // 复制内存
+	int *prev = (int *)memcpy(malloc(size), vprev, size); if (prev) m++;
 	int sum = 0;
 	int side = 0;
 	for (int i = 0; i < TS * TS; ++i)
@@ -128,32 +162,31 @@ void *getNext(void *vprev, const long size, const int priority) {
 	return prev; // 调用方管理内存
 }
 
-mtree *generate() {
+gtree *generate() {  // 广度优先生成博弈树
 
 	int leaf[TS][TS] = { 0 };
 	int nleaf = TS * TS;
 	unsigned long long tnleaf = 1;
-	const int sleaf = sizeof(leaf);
-	mtree *root = mt_cre(leaf, sleaf);
+	gtree *root = gt_cre(leaf, sizeof(leaf));
 
-	mtree **temp = (mtree **)malloc(sizeof(mtree *));
-	if (temp) m++;
+	gtree **temp = (gtree **)malloc(sizeof(gtree *)); if (temp) m++;
 	*temp = root;
-	mtree **curr = temp;
-	mtree **alpha = NULL;
+	gtree **curr = temp;
+	gtree **alpha = NULL;
 
-	while (nleaf && nleaf > TS*TS - GL) {
-		alpha = (mtree **)calloc(1, sizeof(mtree *) * tnleaf * nleaf);
+	while (nleaf && nleaf > TS * TS - GL) {
+		alpha = (gtree **)calloc(1, (size_t)(sizeof(gtree *) * tnleaf * nleaf));
 		if (alpha) m++;
-		else exit(-222);  // TS为4时直接就申请内存失败了……
+		else exit(-222);
 
 		for (unsigned long long j = 0, n = 0; j < tnleaf; ++j, ++curr)
 			for (int i = 0; i < nleaf; ++i, ++n)
 				if (*curr &&
-					(!(*curr)->prev ||
-					((*curr)->prev && !decide(*curr)))) { // 在decide中赋值rate
-					void *next = getNext((*curr)->leaf, sleaf, i + 1);
-					alpha[n] = mt_add(*curr, next, sleaf);
+				        (!(*curr)->prev ||
+				         ((*curr)->prev && !decide(*curr)))) { // 在decide中赋值rate
+					void *next = getNext((*curr)->leaf, (*curr)->_sleaf, i + 1);
+					alpha[n] = gt_add(*curr, next, (*curr)->_sleaf);
+					if (next) f++;
 					free(next);
 				}
 		if (temp) f++;
@@ -161,109 +194,76 @@ mtree *generate() {
 		curr = temp = alpha;
 		tnleaf *= nleaf--;
 	}
-
 	return root;
 }
 
-void mt_prt(mtree *const mt, char *pf, const int level, const int maxlevel) { // not manage the memory yet
-	
-	if (maxlevel && level > maxlevel) return;
+void gt_prt(gtree *const gt, const int level) { // not manage the memory yet
+
+	if (ML && level > ML) return;
 
 	const int pfmax = 256;
-	char *prefix =
-		(char *)(memset(malloc(sizeof(char) * pfmax), 0, sizeof(char) * pfmax));
+	char *prefix = (char *)calloc(1, sizeof(char) * pfmax);
 
-	mtree *temp = mt->prev;
+	gtree *temp = gt->prev;
 	char *se = NULL;
 	for (int i = 0; i < level - 1; ++i, temp = temp->prev) {
 		if (temp->prev && temp == temp->prev->branch[temp->prev->nleaf - 1])
 			se = "      ";
 		else
 			se = "│     ";
-		int l = strlen(prefix) + 1;
-		memmove(prefix + strlen(se), prefix, l);
+		memmove(prefix + strlen(se), prefix, strlen(prefix) + 1);
 		memcpy(prefix, se, strlen(se));
 	}
 	char *content = (char *)calloc(1, sizeof(char) * 512);
-	sprintf(content, "level:%d, rate:%d", level, mt->rate); /////////////
+	sprintf(content, "level:%d, score:%d", level, gt->score); /////////////
 
-	char **chess = (char **)malloc(sizeof(char *) * TS*TS);
-	for (int i = 0; i < TS*TS; ++i)
-		switch (((int *)mt->leaf)[i]) {
-		case 0:
-			chess[i] = " ";
-			break;
-		case 1:
-			chess[i] = "●";
-			break;
-		case -1:
-			chess[i] = "○";
-			break;
+	char **chess = (char **)malloc(sizeof(char *) * TS * TS);
+	for (int i = 0; i < TS * TS; ++i) {
+		switch (((int *)gt->leaf)[i]) {
+		case  0: chess[i] = " "; break;
+		case  1: chess[i] = "●"; break;
+		case -1: chess[i] = "○"; break;
 		}
-
+	}
 	char *p = NULL, *p1 = NULL;
-	if (mt->prev) {
-		if (mt == mt->prev->branch[mt->prev->nleaf - 1]) {
-			p = "└─";
-			p1 = "  ";
-		}
-		else {
-			p = "├─";
-			p1 = "│ ";
+	if (gt->prev) {
+		if (gt == gt->prev->branch[gt->prev->nleaf - 1]) {
+			p = "└─"; p1 = "  ";
+		} else {
+			p = "├─"; p1 = "│ ";
 		}
 		printf("%s%s %s\n", prefix, p, content);
-	}
-	else {
+	} else {
 		p1 = "";
 		printf("%s\n", content);
 	}
 
 	///////////////////////////////
 	int n = 0;
-	for (int i = 1; i <= 2*TS + 1; ++i) {
+	for (int i = 1; i <= 2 * TS + 1; ++i) {
 		printf("%s%s", prefix, p1);
 		if (i % 2) {
 			switch (i) {
-				case 1:
-					for (int j = 0; j < TS + 1; ++j) {
-						switch (j) {
-							case 0:
-								printf("┌   ");
-								break;
-							case TS:
-								printf("┐\n");
-								break;
-							default:
-								printf("┬   ");
-						}
-					}
-					break;
-				case 2*TS + 1:
-					for (int j = 0; j < TS + 1; ++j) {
-						switch (j) {
-							case 0:
-								printf("└   ");
-								break;
-							case TS:
-								printf("┘\n");
-								break;
-							default:
-								printf("┴   ");
-						}
-					}
-					break;
-				default:
-					for (int j = 0; j < TS + 1; ++j) {
-						switch (j) {
-							case 0:
-								printf("├   ");
-								break;
-							case TS:
-								printf("┤\n");
-								break;
-							default:
-								printf("┼   ");
-						}
+			case 1:
+				for (int j = 0; j < TS + 1; ++j)
+					switch (j) {
+					case 0:  printf("┌   "); break;
+					case TS: printf("┐ \n");  break;
+					default: printf("┬   ");
+					} break;
+			case 2 * TS + 1:
+				for (int j = 0; j < TS + 1; ++j)
+					switch (j) {
+					case 0:  printf("└   "); break;
+					case TS: printf("┘ \n");  break;
+					default: printf("┴   ");
+					} break;
+			default:
+				for (int j = 0; j < TS + 1; ++j)
+					switch (j) {
+					case 0:  printf("├   "); break;
+					case TS: printf("┤ \n");  break;
+					default: printf("┼   ");
 					}
 			}
 		} else {
@@ -272,87 +272,85 @@ void mt_prt(mtree *const mt, char *pf, const int level, const int maxlevel) { //
 			printf("\n");
 		}
 	}
-	// printf("%s%s┌   ┬   ┬   ┐\n", prefix, p1);
-	// printf("%s%s  %s   %s   %s \n", prefix, p1, chess[0], chess[1], chess[2]);
-	// printf("%s%s├   ┼   ┼   ┤\n", prefix, p1);
-	// printf("%s%s  %s   %s   %s \n", prefix, p1, chess[3], chess[4], chess[5]);
-	// printf("%s%s├   ┼   ┼   ┤\n", prefix, p1);
-	// printf("%s%s  %s   %s   %s \n", prefix, p1, chess[6], chess[7], chess[8]);
-	// printf("%s%s└   ┴   ┴   ┘\n", prefix, p1);
 
-	for (int i = 0; i < mt->nleaf; ++i)
-		mt_prt(mt->branch[i], NULL, level + 1, maxlevel);
+	for (int i = 0; i < gt->nleaf; ++i)
+		gt_prt(gt->branch[i], level + 1);
 
 	return;
 }
 
-mtree *mt_cre(const void *leaf, const long size) {
+gtree *gt_cre(const void *leaf, const long size) {
 
 	if (!leaf) return NULL;
 
-	mtree *mt = (mtree *)malloc(sizeof(mtree));
-	if (mt) m++;
-	if (!mt) return NULL;
+	gtree *gt = (gtree *)malloc(sizeof(gtree));
+	if (gt) m++;
+	if (!gt) return NULL;
 
-	mt->prev = NULL;
-	mt->branch = (mtree **)malloc(sizeof(mtree *) * INCECO);
-	if (mt->branch) m++;
-	mt->_nbranch = INCECO;
-	mt->nleaf = 0;
-	mt->rate = 0;
-	mt->leaf = malloc(size);
-	if (mt->leaf) m++;
-	if (!(mt->branch && mt->leaf)) {
-		if (mt->branch) f++;
-		free(mt->branch);
-		if (mt->leaf) f++;
-		free(mt->leaf);
-		if (mt) f++;
-		free(mt);
+	gt->prev = NULL;
+	gt->branch = (gtree **)malloc(sizeof(gtree *) * INCECO);
+	if (gt->branch) m++;
+	gt->_nbranch = INCECO;
+	gt->nleaf = 0;
+	gt->score = 0;
+	gt->alpha = 0;
+	gt->beta = 0;
+	gt->_sleaf = size;
+	gt->leaf = malloc(size);
+	if (gt->leaf) m++;
+	if (!(gt->branch && gt->leaf)) {
+		if (gt->branch) f++;
+		free(gt->branch);
+		if (gt->leaf) f++;
+		free(gt->leaf);
+		if (gt) f++;
+		free(gt);
 		return NULL;
 	}
-	memset(mt->branch, 0, sizeof(mtree *) * INCECO);
-	memcpy(mt->leaf, leaf, size);
+	memset(gt->branch, 0, sizeof(gtree *) * INCECO);
+	memcpy(gt->leaf, leaf, size);
 	++k;
-	return mt;
+	return gt;
 }
 
-mtree *mt_add(mtree *const destmt, const void *leaf, const long size) {
+gtree *gt_add(gtree *const destgt, const void *leaf, const long size) {
 
-	mtree *mt = mt_cre(leaf, size);
-	if (!mt) return NULL;
+	gtree *gt = gt_cre(leaf, size);
+	if (!gt) return NULL;
 
-	mt->prev = destmt;
-	if (destmt->_nbranch <= destmt->nleaf) {
-		mtree **temp = (mtree **)realloc(
-			destmt->branch, sizeof(mtree *) * (destmt->_nbranch + INCECO));
+	gt->prev = destgt;
+	if (destgt->_nbranch <= destgt->nleaf) {
+		gtree **temp = (gtree **)realloc(
+		                   destgt->branch, sizeof(gtree *) * (destgt->_nbranch + INCECO));
 		if (!temp) return NULL;
-		memset(temp + destmt->_nbranch, 0, sizeof(mtree *) * INCECO);
-		destmt->branch = temp;
-		destmt->_nbranch += INCECO;
+		memset(temp + destgt->_nbranch, 0, sizeof(gtree *) * INCECO);
+		destgt->branch = temp;
+		destgt->_nbranch += INCECO;
 	}
-	return destmt->branch[destmt->nleaf++] = mt;
+	return destgt->branch[destgt->nleaf++] = gt;
 }
 
-int mt_del(mtree *mt) { // delete all behind mt
+int gt_del(gtree *gt) { // delete all behind gt
 
-	//printf("\ndel:%p\n\n", mt);
+	//printf("\ndel:%p\n\n", gt);
 
-	if (mt->prev)
-		for (int i = 0; i < mt->prev->nleaf; ++i)
-			if (mt->prev->branch[i] == mt) {
-				mt->prev->branch[i] = NULL;
-				if (i + 1 < mt->prev->nleaf) {
-					//printf("mov:dest %p, src %p, size:%d\n\n", mt->prev->branch + i, mt->prev->branch + i + 1, sizeof(mtree *) * (mt->prev->nleaf - i - 1));
-					memmove(mt->prev->branch + i, mt->prev->branch + i + 1,
-						sizeof(mtree *) * (mt->prev->nleaf - i - 1));
+	if (gt->prev) {
+		for (int i = 0; i < gt->prev->nleaf; ++i) {
+			if (gt->prev->branch[i] == gt) {
+				gt->prev->branch[i] = NULL;
+				if (i + 1 < gt->prev->nleaf) {
+					//printf("mov:dest %p, src %p, size:%d\n\n", gt->prev->branch + i, gt->prev->branch + i + 1, sizeof(gtree *) * (gt->prev->nleaf - i - 1));
+					memmove(gt->prev->branch + i, gt->prev->branch + i + 1,
+					        sizeof(gtree *) * (gt->prev->nleaf - i - 1));
 				}
-				mt->prev->nleaf--;
+				gt->prev->nleaf--;
 				break;
 			}
-	mt->prev = NULL;
-	mtree *alpha = mt;
-	mtree *beta = NULL;
+		}
+	}
+	gt->prev = NULL;
+	gtree *alpha = gt;
+	gtree *beta = NULL;
 	int iterations = 0;
 
 	do {
@@ -371,5 +369,5 @@ int mt_del(mtree *mt) { // delete all behind mt
 		}
 		iterations++;
 	} while (alpha);
-	return n = iterations;
+	return (int)(n = iterations);
 }
