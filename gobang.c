@@ -4,10 +4,11 @@
 #include <time.h>
 
 #define INCECO 10 // increasing coefficient
-#define TS 3      // table size
-#define CON 3     // win condition
+#define TS 15     // table size
+#define CON 5     // win condition
 #define ML 0      // printf max level 0 == all
 #define GL TS *TS // generate level 0 == none, up to TS*TS
+#define DEP 2     // search depth 0 == all
 
 typedef struct gametree {
 
@@ -45,16 +46,29 @@ int main() {
     // gtree *well = generate();
 
     int p[][TS] = {
-    	{0, 0, 0}, 
-        {0, 0, 0}, 
-        {0, 0, 0}
+        {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+        {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+        {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+        {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+        {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+        {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+        {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+        {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+        {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+        {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+        {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+        {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+        {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+        {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+        {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
     };
 
     gtree *input = gt_cre((void *)p, sizeof(p));
-    void *solution = solve(input, 0);
+    void *solution = solve(input, DEP);
     gtree *output = gt_cre(solution, sizeof(int) * TS * TS);
 
-    gt_prt(input, 0);
+    //gt_prt(input, 0);
+    gt_prt(output, 0);
 
     gt_del(input);
     gt_del(output);
@@ -82,14 +96,15 @@ void *solve(gtree *root, int depth) {
         // 统计空闲落子个数
         int ngrid = 0;
         int *b = (int *)curgt->leaf;
-        for (int i = 0; i < TS * TS; ++i) {
+        for (int i = 0; i < TS * TS; ++i)
             if (!b[i]) ++ngrid;
-        }
+
+        /*gtree *output = gt_cre(curgt->leaf, sizeof(int) * TS * TS);
+        gt_prt(output, 0);
+        gt_del(output);*/
 
         // 往下到末节点
-        //printf("下沿\n\n");
         while (curdep < depth && !decide(curgt) && re[curdep] < ngrid) {
-            //printf("curdep:%d\n\nre[%d]:%d\n\n", curdep, curdep, re[curdep]);
             void *next = getNext(curgt->leaf, curgt->_sleaf, re[curdep] + 1);
             if (!next) exit(-221);
             gt_add(curgt, next, curgt->_sleaf);
@@ -97,49 +112,51 @@ void *solve(gtree *root, int depth) {
             free(next);
             curgt = curgt->branch[re[curdep++]++];
         }
-        //printf("下沿条件：\ncurdep(%d) < depth(%d)\n!decide(curgt)(%d)\nre[curdep](%d) < ngrid(%d)\n\n", curdep, depth, !decide(curgt), re[curdep], ngrid);
-        // 评估，当为计算的末节点则直接评估，否则按极大极小值赋值
-        //printf("评估\n\n");
+
         if (curdep == depth || decide(curgt)) {
             curgt->score = evaluate(curgt);
-            //printf("curgt->score:%d(0)\n\n", curgt->score);
         } else {
-            re[curdep] = 0;
-            //printf("re[%d] = 0\n\n", curdep);
+            re[curdep] = 0;                    // 重置
             int val = curgt->branch[0]->score; // 值为首元素！
             for (int i = 0; i < curgt->nleaf; ++i) {
-                //printf("curgt->branch[%d]->score:%d\n", i, curgt->branch[i]->score);
-                if ((curdep + 1) % 2) {
-                    // 奇数层，选最大
+                if ((curdep + 1) % 2) { // 奇数层，选最大
                     val = (curgt->branch[i]->score > val)
                               ? curgt->branch[i]->score
                               : val;
-                } else {
-                    // 偶数层，选最小
+                } else { // 偶数层，选最小
                     val = (curgt->branch[i]->score < val)
                               ? curgt->branch[i]->score
                               : val;
                 }
             }
             curgt->score = val;
-            //printf("curgt->score:%d(1)\n\n", curgt->score);
         }
 
         // 回溯到未得分节点
-        //printf("回溯\n\n");
-        while (curgt && curgt->score) {
+        while (curgt && curgt->score && curgt != root) {
+            for (int i = 0; i < curgt->nleaf; ++i) {
+                curgt->branch[i]->prev = NULL;
+                gt_del(curgt->branch[i]);
+                curgt->branch[i] = NULL;
+            }
+            curgt->nleaf = 0;
+            // 以上为删除检索过的节点，释放内存
             curgt = curgt->prev;
             --curdep;
-            //printf("--curdep\n\n");
         }
-        //printf("curdep:%d\n\n", curdep);
 
     } while (!root->score);
 
-    return (void *)p;
+    int i = 0, (*rs)[TS] = NULL;
+    for (; i < root->nleaf; ++i)
+        if (root->branch[i]->score == root->score)
+            rs = (int(*)[TS])memcpy(malloc(root->_sleaf), root->branch[i]->leaf,
+                                    root->branch[i]->_sleaf);
+    // gt_del(root);
+    return (void *)rs;
 }
 
-int evaluate(gtree *gt) { //////
+int evaluate(gtree *gt) { //////评估函数
 
     return rand() % 1000;
 }
@@ -255,9 +272,9 @@ void gt_prt(gtree *const gt, const int level) { // not manage the memory yet
 
     const int pfmax = 256;
     char *prefix = (char *)calloc(1, sizeof(char) * pfmax);
-
     gtree *temp = gt->prev;
     char *se = NULL;
+
     for (int i = 0; i < level - 1; ++i, temp = temp->prev) {
         if (temp->prev && temp == temp->prev->branch[temp->prev->nleaf - 1])
             se = "      ";
@@ -433,9 +450,9 @@ int gt_del(gtree *gt) { // delete all behind gt
     int iterations = 0;
 
     do {
-        if (alpha->nleaf)
+        if (alpha->nleaf) {
             alpha = alpha->branch[alpha->nleaf - 1];
-        else {
+        } else {
             if (alpha->branch) f++;
             free(alpha->branch);
             if (alpha->leaf) f++;
@@ -448,5 +465,5 @@ int gt_del(gtree *gt) { // delete all behind gt
         }
         iterations++;
     } while (alpha);
-    return (int)(n = iterations);
+    return (int)(n += iterations);
 }
