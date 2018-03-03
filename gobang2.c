@@ -3,7 +3,7 @@
 #include <string.h>
 #include <time.h>
 
-#define INCECO 10
+#define INCECO 8
 #define PL     0
 #define TS     15
 
@@ -38,6 +38,7 @@ typedef struct GameTree {
 } GTree;
 
 Point  down(const Board *, const int, const int) ;
+Board *bd_cpy(const Board *);
 Board *bd_cre(const int [TS][TS]);
 void   gt_prt(GTree *const, const int);
 GTree *gt_cre(const void *, const long);
@@ -65,9 +66,7 @@ int main() {
 Point down(const Board *vbd, const int row, const int col) {
 
 	Point rs = { -1, -1};
-	Board *bd = (Board *)memcpy(malloc(sizeof(Board)), vbd, sizeof(Board));
-
-	if (!bd) return rs;
+	Board *bd = bd_cpy(vbd);
 
 	--bd->ngrid;
 
@@ -75,13 +74,23 @@ Point down(const Board *vbd, const int row, const int col) {
 	return rs;
 }
 
+Board *bd_cpy(const Board *vbd) {
+	Board *bd = (Board *)memcpy(malloc(sizeof(Board)), vbd, sizeof(Board));
+	if (!bd) exit(-233);
+	return bd;
+}
+
 Board *bd_cre(const int undone[TS][TS]) {
 
 	Board *bd = calloc(1, sizeof(Board));
 	if (undone) {
 		for (int i = 0; i < TS; ++i)
-			for (int j = 0; j < TS; ++j)
+			for (int j = 0; j < TS; ++j) {
 				bd->grids[i][j].val = (Oval)undone[i][j];
+				if (bd->grids[i][j].val = Nil) ++bd->ngrid;
+			}
+	} else {
+		bd->ngrid = TS * TS;
 	}
 	return bd;
 }
