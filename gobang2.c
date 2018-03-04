@@ -1,7 +1,10 @@
-#include <stdio.h>
+﻿#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+
+#define MAX_INT (((unsigned)(-1)) >> 1)
+#define MIN_INT (MAX_INT + 1)
 
 #define INCECO 10
 #define PL     0
@@ -37,9 +40,12 @@ typedef struct GameTree {
 	void *leaf;
 } GTree;
 
-Point  down(const Board *, const int, const int) ;
+int    down(const Board *, const int, const int, const Oval, const int);
+int    evaluate(Board *);
+
 Board *bd_cpy(const Board *);
 Board *bd_cre(const int [TS][TS]);
+
 void   gt_prt(GTree *const, const int);
 GTree *gt_cre(const void *, const long);
 GTree *gt_add(GTree *const, const void *, const long);
@@ -53,25 +59,52 @@ int main() {
 	setbuf(stdout, NULL);
 	//////////////////////////////
 
-	printf("Hello World!\n");
+	printf("max:%d, min:%d\n", MAX_INT, MIN_INT);
 
 	//////////////////////////////
 	printf("\nmalloc:%lld, free:%llu\n", m, f);
 	printf("\nknots:%lld, iterations:%llu\n", k, n);
 	printf("\ntime use:%lds\n\n", (long)(time(NULL) - start));
 
+	system("pause");
+
 	return 0;
 }
 
-Point down(const Board *vbd, const int row, const int col) {
+int down(const Board *vbd, const int row, const int col, const Oval val, const int depth) {
 
-	Point rs = { -1, -1};
+	int max = MIN_INT, min = MAX_INT;
+	int score = 0;
 	Board *bd = bd_cpy(vbd);
 
+	bd->grids[row][col].val = val;
 	--bd->ngrid;
 
+	for (int i = 0; i < TS; ++i) {
+		for (int j = 0; j < TS; ++j) {
+			if (bd->grids[i][j].val != Nil) {
 
-	return rs;
+				if (depth > 0) {
+					score = down(bd, i, j, val, depth - 1);
+					max = score > max ? score : max;
+					min = score < min ? score : min;
+				} else {
+					bd->score = evaluate(bd);
+				}
+			}
+		}
+	}
+
+	if (depth % 2) {
+
+	}
+
+	return -1;
+}
+
+int evaluate(Board *vbd) {
+
+	return rand() % 1000;
 }
 
 Board *bd_cpy(const Board *vbd) {
