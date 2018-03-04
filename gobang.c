@@ -69,7 +69,7 @@ int main() {
 	void *solution = solve(input, DEP);
 	gtree *output = gt_cre(solution, sizeof(int) * TS * TS);
 
-	gt_prt(input, 0);
+	//gt_prt(input, 0);
 	gt_prt(output, 0);
 
 	gt_del(input);
@@ -480,7 +480,7 @@ gtree *gt_cre(const void *leaf, const long size) {
 	gt->prev = NULL;
 	gt->branch = (gtree **)malloc(sizeof(gtree *) * INCECO); if (gt->branch) m++;
 	gt->_nbranch = INCECO;
-	gt->nleaf = gt->score = gt->alpha = gt->beta = 0;
+	gt->nleaf = gt->score = 0;
 	gt->_sleaf = size;
 	gt->leaf = malloc(size); if (gt->leaf) m++;
 	if (!(gt->branch && gt->leaf)) {
