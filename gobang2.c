@@ -8,7 +8,8 @@
 
 #define INCECO 10
 #define PL     0
-#define TS     3
+#define TS     4
+#define DEP    4
 
 typedef enum {
 	Nil = 0, Black = 1, White = -1
@@ -58,17 +59,21 @@ int main() {
 	time_t start = time(NULL);
 	setbuf(stdout, NULL);
 	//////////////////////////////
-	int u[3][3] = {
+	/*int u[3][3] = {
 		{0, 0, 0},
 	    {0, 1, 0},
 	    {0, -1, 0}
-	};
+	};*/
+	int(*u)[TS] = calloc(1, sizeof(int)*TS*TS);
+	u[2][2] = 1; u[3][3] = -1;
+
 	Board *bd = bd_cre(u);
 	GTree *gt = gt_cre(&bd, sizeof(bd));
-	int rs = down(bd, gt, Black, 2, 0);
+	int rs = (*(Board **)(gt->leaf))->score = down(bd, gt, Black, DEP, 0);
 
 	gt_prt(gt, 0);
-	//printf("%d\n", rs);
+	gt_del(gt);
+	printf("%d\n", rs);
 
 	//////////////////////////////
 	printf("\nmalloc:%lld, free:%llu\n", m, f);
@@ -86,12 +91,13 @@ int down(Board *vbd, GTree *vgt, const Oval nextVal, const int maxdep, const int
 		return evaluate(vbd);
 
 	int max = MIN_INT, min = MAX_INT;
+	Board *bd = NULL;
 	int score = 0;
 
 	for (int i = 0, n = 0; i < TS; ++i) {
 		for (int j = 0; j < TS; ++j) {
 			if (vbd->grids[i][j].val == Nil) {
-				Board *bd = bd_cpy(vbd);
+				bd = bd_cpy(vbd);
 				GTree *gt = gt_add(vgt, &bd, sizeof(bd));
 
 				bd->grids[i][j].val = nextVal;
@@ -99,13 +105,12 @@ int down(Board *vbd, GTree *vgt, const Oval nextVal, const int maxdep, const int
 
 				max = bd->score > max ? bd->score : max;
 				min = bd->score < min ? bd->score : min;
+				//free(bd);
 			}
 		}
 	}
-
 	if (curdep % 2)
 		return min;
-
 	return max;
 }
 
