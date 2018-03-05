@@ -40,7 +40,7 @@ typedef struct GameTree {
 	void *leaf;
 } GTree;
 
-int    down(Board *, const int, const int, const Oval, const int, const int);
+int    down(Board *, const Oval, const int, const int);
 int    evaluate(Board *);
 
 Board *bd_cpy(const Board *);
@@ -61,11 +61,11 @@ int main() {
 	int u[3][3] = {
 		{0, 0, 0},
 	    {0, 1, 0},
-	    {0, 0, 0}
+	    {0, -1, 0}
 	};
 	Board *bd = bd_cre(u);
 
-	int rs = down(bd, 0, 0, White, 1, 0);
+	int rs = down(bd, Black, 2, 0);
 
 	printf("%d\n", rs);
 
@@ -79,40 +79,39 @@ int main() {
 	return 0;
 }
 
-int down(Board *vbd, const int row, const int col, const Oval val, const int maxdep, const int curdep) {
+int down(Board *vbd, const Oval nextVal, const int maxdep, const int curdep) {
+
+	if (!maxdep)
+		return evaluate(vbd);
 
 	int max = MIN_INT, min = MAX_INT;
 	int score = 0;
-	Board *bd = bd_cpy(vbd);
 
-	bd->grids[row][col].val = val;
-	--bd->ngrid;
-	{
-		printf("%d %d %d\n%d %d %d\n%d %d %d\tscore:%d, ngrid:%d, (%d, %d), CM:%d, maxdep:%d, curdep:%d\n\n",
-			bd->grids[0][0].val, bd->grids[0][1].val, bd->grids[0][2].val,
-			bd->grids[1][0].val, bd->grids[1][1].val, bd->grids[1][2].val,
-			bd->grids[2][0].val, bd->grids[2][1].val, bd->grids[2][2].val,
-			bd->score, bd->ngrid, row, col, (int)val, maxdep, curdep);
-	}
-	for (int i = 0; i < TS; ++i) {
+	for (int i = 0, n = 0; i < TS; ++i) {
 		for (int j = 0; j < TS; ++j) {
-			if (bd->grids[i][j].val == Nil) {
+			if (vbd->grids[i][j].val == Nil) {
+				Board *bd = bd_cpy(vbd);
+				bd->grids[i][j].val = nextVal;
+				bd->score = down(bd, -nextVal, maxdep - 1, curdep + 1);
 
-				if (maxdep > 0)
-					score = down(bd, i, j, -val, maxdep - 1, curdep + 1);
-				else 
-					score = evaluate(bd);
+				printf("%d %d %d\n%d %d %d\n%d %d %d\tscore:%d, ngrid:%d, (%d, %d), CM:%d, maxdep:%d, curdep:%d\n\n",
+					bd->grids[0][0].val, bd->grids[0][1].val, bd->grids[0][2].val,
+					bd->grids[1][0].val, bd->grids[1][1].val, bd->grids[1][2].val,
+					bd->grids[2][0].val, bd->grids[2][1].val, bd->grids[2][2].val,
+					bd->score, bd->ngrid, i, j, (int)nextVal, maxdep, curdep);
 
-				max = score > max ? score : max;
-				min = score < min ? score : min;
+				max = bd->score > max ? bd->score : max;
+				min = bd->score < min ? bd->score : min;
 			}
 		}
 	}
 
-	if (curdep % 2)  // max
-		return max;
-	// min
-	return min;
+	if (curdep % 2) {
+		printf("\n[cur:%d\tmin:%d]\n\n", curdep, min);
+		return min;
+	}
+	printf("[cur:%d\tmax:%d]\n\n", curdep, max);
+	return max;
 }
 
 int evaluate(Board *vbd) {
