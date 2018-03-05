@@ -87,13 +87,13 @@ int down(Board *vbd, const int row, const int col, const Oval val, const int max
 
 	bd->grids[row][col].val = val;
 	--bd->ngrid;
-
-	printf("%d %d %d\n%d %d %d\n%d %d %d\tscore:%d, ngrid:%d, (%d, %d), CM:%d, maxdep:%d, curdep:%d\n\n",
-		vbd->grids[0][0].val, vbd->grids[0][1].val, vbd->grids[0][2].val,
-		vbd->grids[1][0].val, vbd->grids[1][1].val, vbd->grids[1][2].val,
-		vbd->grids[2][2].val, vbd->grids[2][2].val, vbd->grids[2][2].val,
-		vbd->score, vbd->ngrid, row, col, (int)val, maxdep, curdep);
-
+	{
+		printf("%d %d %d\n%d %d %d\n%d %d %d\tscore:%d, ngrid:%d, (%d, %d), CM:%d, maxdep:%d, curdep:%d\n\n",
+			bd->grids[0][0].val, bd->grids[0][1].val, bd->grids[0][2].val,
+			bd->grids[1][0].val, bd->grids[1][1].val, bd->grids[1][2].val,
+			bd->grids[2][0].val, bd->grids[2][1].val, bd->grids[2][2].val,
+			bd->score, bd->ngrid, row, col, (int)val, maxdep, curdep);
+	}
 	for (int i = 0; i < TS; ++i) {
 		for (int j = 0; j < TS; ++j) {
 			if (bd->grids[i][j].val == Nil) {
