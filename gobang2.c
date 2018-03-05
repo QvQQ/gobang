@@ -40,7 +40,7 @@ typedef struct GameTree {
 	void *leaf;
 } GTree;
 
-int    down(Board *, const Oval, const int, const int);
+int    down(Board *, GTree *, const Oval, const int, const int);
 int    evaluate(Board *);
 
 Board *bd_cpy(const Board *);
@@ -64,10 +64,11 @@ int main() {
 	    {0, -1, 0}
 	};
 	Board *bd = bd_cre(u);
+	GTree *gt = gt_cre(&bd, sizeof(bd));
+	int rs = down(bd, gt, Black, 2, 0);
 
-	int rs = down(bd, Black, 2, 0);
-
-	printf("%d\n", rs);
+	gt_prt(gt, 0);
+	//printf("%d\n", rs);
 
 	//////////////////////////////
 	printf("\nmalloc:%lld, free:%llu\n", m, f);
@@ -79,7 +80,7 @@ int main() {
 	return 0;
 }
 
-int down(Board *vbd, const Oval nextVal, const int maxdep, const int curdep) {
+int down(Board *vbd, GTree *vgt, const Oval nextVal, const int maxdep, const int curdep) {
 
 	if (!maxdep)
 		return evaluate(vbd);
@@ -91,14 +92,10 @@ int down(Board *vbd, const Oval nextVal, const int maxdep, const int curdep) {
 		for (int j = 0; j < TS; ++j) {
 			if (vbd->grids[i][j].val == Nil) {
 				Board *bd = bd_cpy(vbd);
-				bd->grids[i][j].val = nextVal;
-				bd->score = down(bd, -nextVal, maxdep - 1, curdep + 1);
+				GTree *gt = gt_add(vgt, &bd, sizeof(bd));
 
-				printf("%d %d %d\n%d %d %d\n%d %d %d\tscore:%d, ngrid:%d, (%d, %d), CM:%d, maxdep:%d, curdep:%d\n\n",
-					bd->grids[0][0].val, bd->grids[0][1].val, bd->grids[0][2].val,
-					bd->grids[1][0].val, bd->grids[1][1].val, bd->grids[1][2].val,
-					bd->grids[2][0].val, bd->grids[2][1].val, bd->grids[2][2].val,
-					bd->score, bd->ngrid, i, j, (int)nextVal, maxdep, curdep);
+				bd->grids[i][j].val = nextVal;
+				bd->score = down(bd, gt, -nextVal, maxdep - 1, curdep + 1);
 
 				max = bd->score > max ? bd->score : max;
 				min = bd->score < min ? bd->score : min;
@@ -106,11 +103,9 @@ int down(Board *vbd, const Oval nextVal, const int maxdep, const int curdep) {
 		}
 	}
 
-	if (curdep % 2) {
-		printf("\n[cur:%d\tmin:%d]\n\n", curdep, min);
+	if (curdep % 2)
 		return min;
-	}
-	printf("[cur:%d\tmax:%d]\n\n", curdep, max);
+
 	return max;
 }
 
@@ -159,14 +154,16 @@ void gt_prt(GTree *const gt, const int level) {
 		memcpy(prefix, se, strlen(se));
 	}
 	char *content = (char *)calloc(1, sizeof(char) * 512);
-	sprintf(content, "level:%d, score:%d", level, ((Board*)gt->leaf)->score); /////////////
+	sprintf(content, "level:%d, score:%d", level, (*((Board **)(gt->leaf)))->score); /////////////
 
 	char **chess = (char **)malloc(sizeof(char *) * TS * TS);
-	for (int i = 0; i < TS * TS; ++i) {
-		switch (((Grid*)(((Board*)gt->leaf)->grids))[i].val) {
-		case  Nil: chess[i] = " "; break;
-		case  Black: chess[i] = "●"; break;
-		case  White: chess[i] = "○"; break;
+	for (int i = 0; i < TS; ++i) {
+		for (int j = 0; j < TS; ++j) {
+			switch ((*((Board **)(gt->leaf)))->grids[i][j].val) {
+			case  Nil: chess[TS*i + j] = " "; break;
+			case  Black: chess[TS*i + j] = "●"; break;
+			case  White: chess[TS*i + j] = "○"; break;
+			}
 		}
 	}
 	char *p = NULL, *p1 = NULL;
