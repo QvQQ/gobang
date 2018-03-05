@@ -8,7 +8,7 @@
 
 #define INCECO 10
 #define PL     0
-#define TS     15
+#define TS     3
 
 typedef enum {
 	Nil = 0, Black = 1, White = -1
@@ -40,7 +40,7 @@ typedef struct GameTree {
 	void *leaf;
 } GTree;
 
-int    down(const Board *, const int, const int, const Oval, const int);
+int    down(Board *, const int, const int, const Oval, const int, const int);
 int    evaluate(Board *);
 
 Board *bd_cpy(const Board *);
@@ -58,8 +58,16 @@ int main() {
 	time_t start = time(NULL);
 	setbuf(stdout, NULL);
 	//////////////////////////////
+	int u[3][3] = {
+		{0, 0, 0},
+	    {0, 1, 0},
+	    {0, 0, 0}
+	};
+	Board *bd = bd_cre(u);
 
-	printf("max:%d, min:%d\n", MAX_INT, MIN_INT);
+	int rs = down(bd, 0, 0, White, 1, 0);
+
+	printf("%d\n", rs);
 
 	//////////////////////////////
 	printf("\nmalloc:%lld, free:%llu\n", m, f);
@@ -71,7 +79,7 @@ int main() {
 	return 0;
 }
 
-int down(const Board *vbd, const int row, const int col, const Oval val, const int depth) {
+int down(Board *vbd, const int row, const int col, const Oval val, const int maxdep, const int curdep) {
 
 	int max = MIN_INT, min = MAX_INT;
 	int score = 0;
@@ -80,26 +88,31 @@ int down(const Board *vbd, const int row, const int col, const Oval val, const i
 	bd->grids[row][col].val = val;
 	--bd->ngrid;
 
+	printf("%d %d %d\n%d %d %d\n%d %d %d\tscore:%d, ngrid:%d, (%d, %d), CM:%d, maxdep:%d, curdep:%d\n\n",
+		vbd->grids[0][0].val, vbd->grids[0][1].val, vbd->grids[0][2].val,
+		vbd->grids[1][0].val, vbd->grids[1][1].val, vbd->grids[1][2].val,
+		vbd->grids[2][2].val, vbd->grids[2][2].val, vbd->grids[2][2].val,
+		vbd->score, vbd->ngrid, row, col, (int)val, maxdep, curdep);
+
 	for (int i = 0; i < TS; ++i) {
 		for (int j = 0; j < TS; ++j) {
-			if (bd->grids[i][j].val != Nil) {
+			if (bd->grids[i][j].val == Nil) {
 
-				if (depth > 0) {
-					score = down(bd, i, j, val, depth - 1);
-					max = score > max ? score : max;
-					min = score < min ? score : min;
-				} else {
-					bd->score = evaluate(bd);
-				}
+				if (maxdep > 0)
+					score = down(bd, i, j, -val, maxdep - 1, curdep + 1);
+				else 
+					score = evaluate(bd);
+
+				max = score > max ? score : max;
+				min = score < min ? score : min;
 			}
 		}
 	}
 
-	if (depth % 2) {
-
-	}
-
-	return -1;
+	if (curdep % 2)  // max
+		return max;
+	// min
+	return min;
 }
 
 int evaluate(Board *vbd) {
@@ -117,11 +130,12 @@ Board *bd_cre(const int undone[TS][TS]) {
 
 	Board *bd = calloc(1, sizeof(Board));
 	if (undone) {
-		for (int i = 0; i < TS; ++i)
+		for (int i = 0; i < TS; ++i) {
 			for (int j = 0; j < TS; ++j) {
 				bd->grids[i][j].val = (Oval)undone[i][j];
-				if (bd->grids[i][j].val = Nil) ++bd->ngrid;
+				if (bd->grids[i][j].val == Nil) ++bd->ngrid;
 			}
+		}
 	} else {
 		bd->ngrid = TS * TS;
 	}
