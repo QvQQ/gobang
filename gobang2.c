@@ -7,9 +7,10 @@
 #define MIN_INT (MAX_INT + 1)
 
 #define INCECO 10
-#define PL     0
-#define TS     3
-#define DEP    3
+#define PL     1
+#define TS     10
+#define DEP    4
+#define GT     0
 
 typedef enum {
 	Nil = 0, Black = 1, White = -1
@@ -41,6 +42,7 @@ typedef struct GameTree {
 	void *leaf;
 } GTree;
 
+Point  solve(Board *, GTree *, const int, Board **);
 int    down(Board *, GTree *, const Oval, const int, const int);
 int    evaluate(Board *);
 int    isfinish(Board *, const int, const int);
@@ -59,22 +61,28 @@ int main() {
 
 	time_t start = time(NULL);
 	setbuf(stdout, NULL);
+
 	//////////////////////////////
-	/*int u[3][3] = {
-		{0, 0, 0},
-	    {0, 1, 0},
-	    {0, -1, 0}
-	};*/
+
 	int(*u)[TS] = calloc(1, sizeof(int)*TS*TS);
 	u[1][1] = 1; u[2][2] = -1;
 
-	Board *bd = bd_cre(u);
-	GTree *gt = gt_cre(&bd, sizeof(bd));
-	int rs = (*(Board **)(gt->leaf))->score = down(bd, gt, Black, DEP, 0);
+	Board *bd = NULL; GTree *gt = NULL; Point pos;
 
+	bd = bd_cre(u);
+	if(GT) gt = gt_cre(&bd, sizeof(bd));
+	pos = solve(bd, gt, DEP, &bd);
+
+	if (GT) {
+		gt_prt(gt, 0);
+		gt_del(gt);
+	}
+	printf("\nRESULT:\n\n");
+	gt = gt_cre(&bd, sizeof(bd));
 	gt_prt(gt, 0);
 	gt_del(gt);
-	printf("%d\n", rs);
+
+	printf("\n(%d, %d)\n", pos.x, pos.y);
 
 	//////////////////////////////
 	printf("\nmalloc:%lld, free:%llu\n", m, f);
@@ -86,28 +94,62 @@ int main() {
 	return 0;
 }
 
-Point solve(Board *vbd, const int maxdep) {
+Point solve(Board *vbd, GTree *vgt, const int maxdep, Board **rbd) {
 
+	Board *bd = NULL;
+	GTree *gt = NULL;
+	vbd->score = MIN_INT;
 	Point pos = { -1, -1 };
 
-	if (isfinish(vbd))
+	if (maxdep <= 0)
 		return pos;
 
+	int sum = 0;
+	for (int i = 0; i < TS; ++i)
+		for (int j = 0; j < TS; ++j)
+			sum += (int)(vbd->grids[i][j].val);
 
+	Oval nextVal = sum ? White : Black;
 
+	for (int i = 0; i < TS; ++i) {
+		for (int j = 0; j < TS; ++j) {
+			if (vbd->grids[i][j].val == Nil) {
+				bd = bd_cpy(vbd);
+				if (GT) gt = gt_add(vgt, &bd, sizeof(bd));
+
+				bd->grids[i][j].val = nextVal;
+				bd->score = (maxdep - 1) && !isfinish(bd, i, j)
+					? down(bd, gt, -nextVal, maxdep - 1, 1)
+					: evaluate(vbd);
+
+				if (vbd->score < bd->score) {
+					pos.x = i + 1;
+					pos.y = j + 1;
+
+					if (rbd) {
+						if (!GT) free(*rbd);
+						*rbd = bd;
+					}
+					vbd->score = bd->score;
+				} else if (!GT) free(bd);
+			}
+		}
+	}
+	return pos;
 }
 
 int down(Board *vbd, GTree *vgt, const Oval nextVal, const int maxdep, const int curdep) {
 
 	int max = MIN_INT, min = MAX_INT;
 	Board *bd = NULL;
+	GTree *gt = NULL;
 	int score = 0;
 
 	for (int i = 0, n = 0; i < TS; ++i) {
 		for (int j = 0; j < TS; ++j) {
 			if (vbd->grids[i][j].val == Nil) {
 				bd = bd_cpy(vbd);
-				GTree *gt = gt_add(vgt, &bd, sizeof(bd));
+				if (GT) gt = gt_add(vgt, &bd, sizeof(bd));
 
 				bd->grids[i][j].val = nextVal;
 				bd->score = (maxdep - 1 && !isfinish(bd, i, j)) 
@@ -116,7 +158,7 @@ int down(Board *vbd, GTree *vgt, const Oval nextVal, const int maxdep, const int
 
 				max = bd->score > max ? bd->score : max;
 				min = bd->score < min ? bd->score : min;
-				//free(bd);
+				if (!GT) free(bd);
 			}
 		}
 	}
@@ -127,12 +169,13 @@ int down(Board *vbd, GTree *vgt, const Oval nextVal, const int maxdep, const int
 
 int evaluate(Board *vbd) {
 
-	return rand() % 1000;
+	srand(clock() * rand() % 10000);
+	return rand() % 10000;
 }
 
 int isfinish(Board *vbd, const int row, const int col) {
 
-
+	
 
 	return 0;
 }
@@ -238,6 +281,9 @@ void gt_prt(GTree *const gt, const int level) {
 			printf("\n");
 		}
 	}
+	free(prefix);
+	free(content);
+	free(chess);
 
 	for (int i = 0; i < gt->nleaf; ++i)
 		gt_prt(gt->branch[i], level + 1);
