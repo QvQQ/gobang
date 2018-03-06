@@ -7,10 +7,14 @@
 #define MIN_INT (MAX_INT + 1)
 
 #define INCECO 10
-#define PL     1
-#define TS     10
-#define DEP    4
-#define GT     0
+
+#define TS     3
+#define CON    3
+
+#define DEP    9
+
+#define GT     1
+#define PL     0
 
 typedef enum {
 	Nil = 0, Black = 1, White = -1
@@ -64,13 +68,17 @@ int main() {
 
 	//////////////////////////////
 
-	int(*u)[TS] = calloc(1, sizeof(int)*TS*TS);
-	u[1][1] = 1; u[2][2] = -1;
+	int u[][4] = {
+		{ 1, 0, 0, 0 },
+	    { 0, 0, -1, 0 },
+	    { 0, 0, -1, 0 },
+	    { 1, 0, 0, 0 },
+	};
 
 	Board *bd = NULL; GTree *gt = NULL; Point pos;
 
 	bd = bd_cre(u);
-	if(GT) gt = gt_cre(&bd, sizeof(bd));
+	if (GT) gt = gt_cre(&bd, sizeof(bd));
 	pos = solve(bd, gt, DEP, &bd);
 
 	if (GT) {
@@ -175,8 +183,45 @@ int evaluate(Board *vbd) {
 
 int isfinish(Board *vbd, const int row, const int col) {
 
-	
-
+	int sum, k, ox, oy;
+	// row:
+	ox = row; oy = col;
+	while (oy && vbd->grids[ox][oy - 1].val == vbd->grids[ox][oy].val)
+		--oy;
+	if (oy <= TS - CON) {
+		for (k = sum = 0; k < CON; ++k)
+			sum += vbd->grids[ox][oy + k].val;
+		if (abs(sum) == CON) return 1;
+	}
+	// col:
+	ox = row; oy = col;
+	while (ox && vbd->grids[ox - 1][oy].val == vbd->grids[ox][oy].val)
+		--ox;
+	if (ox <= TS - CON) {
+		for (k = sum = 0; k < CON; ++k)
+			sum += vbd->grids[ox + k][oy].val;
+		if (abs(sum) == CON) return 1;
+	}
+	// sla: 左下->右上
+	ox = row; oy = col;
+	while (ox < TS && oy && vbd->grids[ox + 1][oy - 1].val == vbd->grids[ox][oy].val) {
+		++ox; --oy;
+	}
+	if (ox >= CON - 1 && oy <= TS - CON) {
+		for (k = sum = 0; k < CON; ++k)
+			sum += vbd->grids[ox - k][oy + k].val;
+		if (abs(sum) == CON) return 1;
+	}
+	// bsla: 左上->右下
+	ox = row; oy = col;
+	while (ox && oy && vbd->grids[ox - 1][oy - 1].val == vbd->grids[ox][oy].val) {
+		--ox; --oy;
+	}
+	if (ox <= TS - CON && oy <= TS - CON) {
+		for (k = sum = 0; k < CON; ++k)
+			sum += vbd->grids[ox + k][oy + k].val;
+		if (abs(sum) == CON) return 1;
+	}
 	return 0;
 }
 
