@@ -8,8 +8,8 @@
 
 #define INCECO 10
 #define PL     0
-#define TS     4
-#define DEP    4
+#define TS     3
+#define DEP    3
 
 typedef enum {
 	Nil = 0, Black = 1, White = -1
@@ -43,6 +43,7 @@ typedef struct GameTree {
 
 int    down(Board *, GTree *, const Oval, const int, const int);
 int    evaluate(Board *);
+int    isfinish(Board *, const int, const int);
 
 Board *bd_cpy(const Board *);
 Board *bd_cre(const int [TS][TS]);
@@ -65,7 +66,7 @@ int main() {
 	    {0, -1, 0}
 	};*/
 	int(*u)[TS] = calloc(1, sizeof(int)*TS*TS);
-	u[2][2] = 1; u[3][3] = -1;
+	u[1][1] = 1; u[2][2] = -1;
 
 	Board *bd = bd_cre(u);
 	GTree *gt = gt_cre(&bd, sizeof(bd));
@@ -85,10 +86,18 @@ int main() {
 	return 0;
 }
 
-int down(Board *vbd, GTree *vgt, const Oval nextVal, const int maxdep, const int curdep) {
+Point solve(Board *vbd, const int maxdep) {
 
-	if (!maxdep)
-		return evaluate(vbd);
+	Point pos = { -1, -1 };
+
+	if (isfinish(vbd))
+		return pos;
+
+
+
+}
+
+int down(Board *vbd, GTree *vgt, const Oval nextVal, const int maxdep, const int curdep) {
 
 	int max = MIN_INT, min = MAX_INT;
 	Board *bd = NULL;
@@ -101,7 +110,9 @@ int down(Board *vbd, GTree *vgt, const Oval nextVal, const int maxdep, const int
 				GTree *gt = gt_add(vgt, &bd, sizeof(bd));
 
 				bd->grids[i][j].val = nextVal;
-				bd->score = down(bd, gt, -nextVal, maxdep - 1, curdep + 1);
+				bd->score = (maxdep - 1 && !isfinish(bd, i, j)) 
+					                     ? down(bd, gt, -nextVal, maxdep - 1, curdep + 1)
+					                     : evaluate(bd);
 
 				max = bd->score > max ? bd->score : max;
 				min = bd->score < min ? bd->score : min;
@@ -117,6 +128,13 @@ int down(Board *vbd, GTree *vgt, const Oval nextVal, const int maxdep, const int
 int evaluate(Board *vbd) {
 
 	return rand() % 1000;
+}
+
+int isfinish(Board *vbd, const int row, const int col) {
+
+
+
+	return 0;
 }
 
 Board *bd_cpy(const Board *vbd) {
