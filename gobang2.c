@@ -8,12 +8,12 @@
 
 #define INCECO 10
 
-#define TS     3
-#define CON    3
+#define TS     10
+#define CON    5
 
-#define DEP    9
+#define DEP    4
 
-#define GT     1
+#define GT     0
 #define PL     0
 
 typedef enum {
@@ -60,6 +60,7 @@ GTree *gt_add(GTree *const, const void *, const long);
 int    gt_del(GTree *);
 
 unsigned long long m = 0, f = 0, n = 0, k = 0;
+Oval aival = Nil;
 
 int main() {
 
@@ -68,11 +69,17 @@ int main() {
 
 	//////////////////////////////
 
-	int u[][4] = {
-		{ 1, 0, 0, 0 },
-	    { 0, 0, -1, 0 },
-	    { 0, 0, -1, 0 },
-	    { 1, 0, 0, 0 },
+	int u[][TS] = {
+		{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+	    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+	    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+	    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+	    { 0, 0, 0, 0, 1, 0, 0, 0, 0, 0 },
+	    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+	    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+	    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+	    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+	    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 	};
 
 	Board *bd = NULL; GTree *gt = NULL; Point pos;
@@ -117,7 +124,7 @@ Point solve(Board *vbd, GTree *vgt, const int maxdep, Board **rbd) {
 		for (int j = 0; j < TS; ++j)
 			sum += (int)(vbd->grids[i][j].val);
 
-	Oval nextVal = sum ? White : Black;
+	Oval nextVal = aival = sum ? White : Black;
 
 	for (int i = 0; i < TS; ++i) {
 		for (int j = 0; j < TS; ++j) {
@@ -128,7 +135,7 @@ Point solve(Board *vbd, GTree *vgt, const int maxdep, Board **rbd) {
 				bd->grids[i][j].val = nextVal;
 				bd->score = (maxdep - 1) && !isfinish(bd, i, j)
 					? down(bd, gt, -nextVal, maxdep - 1, 1)
-					: evaluate(vbd);
+					: evaluate(vbd, nextVal);
 
 				if (vbd->score < bd->score) {
 					pos.x = i + 1;
@@ -177,7 +184,8 @@ int down(Board *vbd, GTree *vgt, const Oval nextVal, const int maxdep, const int
 
 int evaluate(Board *vbd) {
 
-	srand(clock() * rand() % 10000);
+	// aival;
+
 	return rand() % 10000;
 }
 
