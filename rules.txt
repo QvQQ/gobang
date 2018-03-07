@@ -1,0 +1,5 @@
+#ooxxxx  233
+xoxxxx    23
+o#ooxxxx   2
+#xoxxxx    3
+##oxxxx   33
