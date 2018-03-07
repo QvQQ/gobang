@@ -12,6 +12,7 @@
 #define CON    5
 
 #define DEP    4
+#define RUL    "rules.txt"
 
 #define GT     0
 #define PL     0
@@ -36,6 +37,11 @@ typedef struct {
 	int y;
 } Point;
 
+typedef struct {
+	const char *state;
+	const int score;
+} rule;
+
 typedef struct GameTree {
 	struct GameTree *prev;
 	struct GameTree **branch;
@@ -48,6 +54,7 @@ typedef struct GameTree {
 
 Point  solve(Board *, GTree *, const int, Board **);
 int    down(Board *, GTree *, const Oval, const int, const int);
+GTree *init_rules(const char *);
 int    evaluate(Board *);
 int    isfinish(Board *, const int, const int);
 
@@ -60,7 +67,7 @@ GTree *gt_add(GTree *const, const void *, const long);
 int    gt_del(GTree *);
 
 unsigned long long m = 0, f = 0, n = 0, k = 0;
-Oval aival = Nil;
+Oval aiVal = Nil; GTree *rules = NULL;
 
 int main() {
 
@@ -124,7 +131,8 @@ Point solve(Board *vbd, GTree *vgt, const int maxdep, Board **rbd) {
 		for (int j = 0; j < TS; ++j)
 			sum += (int)(vbd->grids[i][j].val);
 
-	Oval nextVal = aival = sum ? White : Black;
+	Oval nextVal = aiVal = sum ? White : Black;
+	rules = init_rules(RUL);
 
 	for (int i = 0; i < TS; ++i) {
 		for (int j = 0; j < TS; ++j) {
@@ -135,7 +143,7 @@ Point solve(Board *vbd, GTree *vgt, const int maxdep, Board **rbd) {
 				bd->grids[i][j].val = nextVal;
 				bd->score = (maxdep - 1) && !isfinish(bd, i, j)
 					? down(bd, gt, -nextVal, maxdep - 1, 1)
-					: evaluate(vbd, nextVal);
+					: evaluate(bd); ////
 
 				if (vbd->score < bd->score) {
 					pos.x = i + 1;
@@ -182,9 +190,30 @@ int down(Board *vbd, GTree *vgt, const Oval nextVal, const int maxdep, const int
 	return max;
 }
 
+GTree *init_rules(const char *path) {
+
+	if (!path)
+		path = "rules.txt";
+
+	FILE *file = fopen(path, "r");
+
+	if (!file)
+		exit(-777);
+
+	char *p = NULL;
+	fscanf(file, "%s", p);
+	printf("p:\"%s\"\n\n", p);
+	exit(0);
+
+
+	fclose(file);
+
+	return NULL;
+}
+
 int evaluate(Board *vbd) {
 
-	// aival;
+	// aiVal;
 
 	return rand() % 10000;
 }
