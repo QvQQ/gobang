@@ -12,11 +12,11 @@
 #xxxxo      8   B
 #xxxxxo     16  B
 
-ox#         1   B
-oxx#        2   B
-oxxx#       4   B
-oxxxx#      8   B
-oxxxxx#     16  B
+x#         1   B
+xx#        2   B
+xxx#       4   B
+xxxx#      8   B
+xxxxx#     16  B
 
 #o#         2   W
 #oo#        4   W
@@ -30,8 +30,8 @@ oxxxxx#     16  B
 #oooox      8   W
 #ooooox     16  W
 
-xo#         1   W
-xoo#        2   W
-xooo#       4   W
-xoooo#      8   W
-xooooo#     16  W
+o#         1   W
+oo#        2   W
+ooo#       4   W
+oooo#      8   W
+ooooo#     16  W

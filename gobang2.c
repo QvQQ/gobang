@@ -15,7 +15,7 @@
 #define RUL    "rules.txt"
 
 #define GT     0
-#define PL     1
+#define PL     0
 
 typedef enum {
 	Nil = 0, Black = 1, White = -1
@@ -93,9 +93,9 @@ int main() {
 
 	bd = bd_cre(u);
 	/*///
-	rules = init_rules(NULL); printf("\n\n");
-	gt_prt(rules, 0);
-	printf("\n\nScore:%d\n\n", evaluate(bd));
+	rules = init_rules(NULL); printf("\n");
+	gt_prt(rules, 0);printf("\n");
+	printf("\nScore:%d\n\n", evaluate(bd));
 	system("pause");
 	///*/
 	if (GT) gt = gt_cre(&bd, sizeof(bd));
@@ -154,7 +154,7 @@ Point solve(Board *vbd, GTree *vgt, const int maxdep, Board **rbd) {
 					pos.x = i + 1;
 					pos.y = j + 1;
 					if (rbd) {
-						if (!GT) free(*rbd);
+						//if (!GT) free(*rbd);
 						*rbd = bd;
 					}
 					vbd->score = bd->score;
@@ -269,10 +269,11 @@ int evaluate(Board *vbd) {
 			continue;
 		}
 	}
-	printf("Black:%d, White:%d\n", blackScore, whiteScore);
+	//printf("Black:%d, White:%d\n", blackScore, whiteScore);
 	switch (aiVal) {
 	case Black: return blackScore - whiteScore;
 	case White: return whiteScore - blackScore;
+	default:    return -1;
 	}
 }
 
