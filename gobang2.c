@@ -11,10 +11,10 @@
 #define TS     10
 #define CON    5
 
-#define DEP    4
+#define DEP    3
 #define RUL    "rules.txt"
 
-#define GT     0
+#define GT     1
 #define PL     0
 
 typedef enum {
@@ -38,7 +38,7 @@ typedef struct {
 } Point;
 
 typedef struct {
-	char val;
+	Oval val;
 	Oval who;
 	int  score;
 } Rule;
@@ -76,17 +76,12 @@ int main() {
 	setbuf(stdout, NULL);
 
 	//////////////////////////////
-
-	rules = init_rules(NULL); printf("\n\n");
-	gt_prt(rules, 0);
-	system("pause");
-
 	int u[][TS] = {
+		{ 1,-1, 0, 0, 0, 0, 0, 0, 0, 0 },
 		{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 		{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 		{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-		{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-		{ 0, 0, 0, 0, 1, 0, 0, 0, 0, 0 },
+		{ 0, 0, 0,-1, 1, 1, 0, 0, 0, 0 },
 		{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 		{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 		{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
@@ -97,6 +92,12 @@ int main() {
 	Board *bd = NULL; GTree *gt = NULL; Point pos;
 
 	bd = bd_cre(u);
+	////
+	rules = init_rules(NULL); printf("\n\n");
+	gt_prt(rules, 0);
+	printf("\n\nScore:%d\n\n", evaluate(bd));
+	system("pause");
+	////
 	if (GT) gt = gt_cre(&bd, sizeof(bd));
 	pos = solve(bd, gt, DEP, &bd);
 
@@ -149,11 +150,9 @@ Point solve(Board *vbd, GTree *vgt, const int maxdep, Board **rbd) {
 				bd->score = (maxdep - 1) && !isfinish(bd, i, j)
 				            ? down(bd, gt, -nextVal, maxdep - 1, 1)
 				            : evaluate(bd); ////
-
 				if (vbd->score < bd->score) {
 					pos.x = i + 1;
 					pos.y = j + 1;
-
 					if (rbd) {
 						if (!GT) free(*rbd);
 						*rbd = bd;
@@ -208,26 +207,33 @@ GTree *init_rules(const char *path) {
 	char state[256] = { 0 };
 	int  score = 0;
 	char who = 'N';
-	Rule rule = {'Q', Nil, 0};
+	Oval val = Nil;
+	Rule rule = {Nil, Nil, 0};
 	
 	GTree *curgt = NULL, *root = gt_cre(&rule, sizeof(Rule));  // #xooo#
 
 	while (fscanf(file, "%s %d %c", state, &score, &who) != EOF) {
-		printf("[%s]:[%d] %c\n", state, score, who);
+		//printf("[%s]:[%d] %c\n", state, score, who);
 		curgt = root;
 		for (int i = 0, len = strlen(state); i < len; ++i) {
 			for (int j = 0, nleaf = curgt->nleaf; j < nleaf; ++j) {
-				if (((Rule *)curgt->branch[j]->leaf)->val == state[i]) {
+				switch (state[i]) {
+				case '#': val = Nil;   break;
+				case 'x': val = Black; break;
+				case 'o': val = White; break;
+				}
+				if (((Rule *)curgt->branch[j]->leaf)->val == val) {
 					curgt = curgt->branch[j];
 					goto jump;
 				}
 			}
 			curgt = gt_add(curgt, &rule, sizeof(Rule));
-			((Rule *)curgt->leaf)->val = state[i];
+			((Rule *)curgt->leaf)->val = val;
 		jump:
 			if (i == len - 1) {  // the last one
 				((Rule *)curgt->leaf)->score = score;
-				((Rule *)curgt->leaf)->who = (who == 'B') ? Black : ((who == 'W') ? White : Nil);
+				((Rule *)curgt->leaf)->who = (who == 'B') ? Black : 
+					                        ((who == 'W') ? White : Nil);
 			}
 		}
 	}
@@ -238,16 +244,36 @@ GTree *init_rules(const char *path) {
 
 int evaluate(Board *vbd) {
 
-	// aiVal;
+	// Oval aiVal; Rule rules;
 	int blackScore = 0;
 	int whiteScore = 0;
+	GTree *curgt = rules;
 	Grid(*gbd)[TS] = vbd->grids;
 	
 	for (int i = 0; i < TS; ++i) {
-
+		for (int j = 0; j < TS; ++j) {
+			for (int k = 0, n = curgt->nleaf; k < n; ++k) {
+				if (((Rule *)curgt->branch[k]->leaf)->val == gbd[i][j].val) {
+					curgt = curgt->branch[k];
+					goto jump;
+				}
+			}
+			switch (((Rule *)curgt->leaf)->who) {
+			case Black:
+				blackScore += ((Rule *)curgt->leaf)->score; break;
+			case White:
+				whiteScore += ((Rule *)curgt->leaf)->score; break;
+			}
+			curgt = rules; --j;
+		jump:
+			continue;
+		}
 	}
-
-	return rand() % 10000;
+	printf("Black:%d, White:%d\n", blackScore - whiteScore, whiteScore - blackScore);
+	switch (aiVal) {
+	case Black: return blackScore - whiteScore;
+	case White: return whiteScore - blackScore;
+	}
 }
 
 int isfinish(Board *vbd, const int row, const int col) {
@@ -335,7 +361,7 @@ void gt_prt(GTree *const gt, const int level) {
 	}
 	char *content = (char *)calloc(1, sizeof(char) * 512);
 	//sprintf(content, "level:%d, score:%d", level, (*((Board **)(gt->leaf)))->score); /////////////
-	sprintf(content, "[%c]:[%d] %d", ((Rule *)gt->leaf)->val, ((Rule *)gt->leaf)->score, ((Rule *)gt->leaf)->who);
+	sprintf(content, "[%c]:[%d] %s", (((Rule *)gt->leaf)->val == Nil ? '#' : (((Rule *)gt->leaf)->val == Black ? 'x' : (((Rule *)gt->leaf)->val == White ? 'o' : '*'))), ((Rule *)gt->leaf)->score, (((Rule *)gt->leaf)->who == Nil ? "N" : (((Rule *)gt->leaf)->who == Black ? "B" : (((Rule *)gt->leaf)->who == White ? "W" : "*"))));
 
 	char *p = NULL, *p1 = NULL;
 	if (gt->prev) {
