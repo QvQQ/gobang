@@ -1,5 +1,17 @@
-#ooxxxx  233
-xoxxxx    23
-o#ooxxxx   2
-#xoxxxx    3
-##oxxxx   33
+#x#         2   B
+#xx#        4   B
+#xxx#       8   B
+#xxxx#      16  B
+#xxxxx#     32  B
+
+#xo         1   B
+#xxo        2   B
+#xxxo       4   B
+#xxxxo      8   B
+#xxxxxo     16  B
+
+ox#         1   B
+oxx#        2   B
+oxxx#       4   B
+oxxxx#      8   B
+oxxxxx#     16  B

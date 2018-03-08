@@ -39,6 +39,7 @@ typedef struct {
 
 typedef struct {
 	char val;
+	Oval who;
 	int  score;
 } Rule;
 
@@ -206,12 +207,13 @@ GTree *init_rules(const char *path) {
 
 	char state[256] = { 0 };
 	int  score = 0;
-	Rule rule = {'Q', 0 };
+	char who = 'N';
+	Rule rule = {'Q', Nil, 0};
 	
 	GTree *curgt = NULL, *root = gt_cre(&rule, sizeof(Rule));  // #xooo#
 
-	while (fscanf(file, "%s %d", state, &score) != EOF) {
-		printf("[%s]:[%d]\n", state, score);
+	while (fscanf(file, "%s %d %c", state, &score, &who) != EOF) {
+		printf("[%s]:[%d] %c\n", state, score, who);
 		curgt = root;
 		for (int i = 0, len = strlen(state); i < len; ++i) {
 			for (int j = 0, nleaf = curgt->nleaf; j < nleaf; ++j) {
@@ -225,6 +227,7 @@ GTree *init_rules(const char *path) {
 		jump:
 			if (i == len - 1) {  // the last one
 				((Rule *)curgt->leaf)->score = score;
+				((Rule *)curgt->leaf)->who = (who == 'B') ? Black : ((who == 'W') ? White : Nil);
 			}
 		}
 	}
@@ -236,6 +239,13 @@ GTree *init_rules(const char *path) {
 int evaluate(Board *vbd) {
 
 	// aiVal;
+	int blackScore = 0;
+	int whiteScore = 0;
+	Grid(*gbd)[TS] = vbd->grids;
+	
+	for (int i = 0; i < TS; ++i) {
+
+	}
 
 	return rand() % 10000;
 }
@@ -325,7 +335,7 @@ void gt_prt(GTree *const gt, const int level) {
 	}
 	char *content = (char *)calloc(1, sizeof(char) * 512);
 	//sprintf(content, "level:%d, score:%d", level, (*((Board **)(gt->leaf)))->score); /////////////
-	sprintf(content, "[%c]:[%d]", ((Rule *)gt->leaf)->val, ((Rule *)gt->leaf)->score);
+	sprintf(content, "[%c]:[%d] %d", ((Rule *)gt->leaf)->val, ((Rule *)gt->leaf)->score, ((Rule *)gt->leaf)->who);
 
 	char *p = NULL, *p1 = NULL;
 	if (gt->prev) {
