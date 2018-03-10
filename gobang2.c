@@ -11,7 +11,7 @@
 #define TS     10
 #define CON    5
 
-#define DEP    1
+#define DEP    3
 #define RUL    "rules.txt"
 
 #define GT     0
@@ -92,12 +92,6 @@ int main() {
 	Board *bd = NULL; GTree *gt = NULL; Point pos;
 
 	bd = bd_cre(u);
-	/*///
-	rules = init_rules(NULL); printf("\n");
-	gt_prt(rules, 0);printf("\n");
-	printf("\nScore:%d\n\n", evaluate(bd));
-	system("pause");
-	///*/
 	if (GT) gt = gt_cre(&bd, sizeof(bd));
 	pos = solve(bd, gt, DEP, &bd);
 
@@ -111,10 +105,7 @@ int main() {
 	gt_del(gt);
 
 	printf("\n(%d, %d)\n", pos.x, pos.y);
-
 	//////////////////////////////
-	printf("\nmalloc:%lld, free:%llu\n", m, f);
-	printf("\nknots:%lld, iterations:%llu\n", k, n);
 	printf("\ntime use:%lds\n\n", (long)(time(NULL) - start));
 
 	system("pause");
@@ -250,71 +241,69 @@ int evaluate(Board *vbd) {
 	GTree *curgt = rules;
 	const Grid(*gbd)[TS] = vbd->grids;
 	
-	/*/ 从左到右
-	for (int i = 0; i < TS; ++i) {
-		for (int j = 0; j < TS; ++j) {
-			for (int k = 0, n = curgt->nleaf; k < n; ++k) {
-				if (gbd[i][j].val == ((Rule *)curgt->branch[k]->leaf)->val) {
-					curgt = curgt->branch[k];
-					if (j == TS - 1) goto jump1_1;  // 到达一行最后一项直接结算分数
-					else goto jump1_2;
-				}
-			}
-			--j;  // 未匹配到节点，回退一项
-		jump1_1:
-			switch (((Rule *)curgt->leaf)->who) {
-			case Black: blackScore += ((Rule *)curgt->leaf)->score; break;
-			case White: whiteScore += ((Rule *)curgt->leaf)->score; break;
-			}
-			curgt = rules; 
-		jump1_2:
-			continue;
-		}
-	}
-
+	// 从左到右
+	//for (int i = 0; i < TS; ++i) {
+	//	for (int j = 0; j < TS; ++j) {
+	//		for (int k = 0, n = curgt->nleaf; k < n; ++k) {
+	//			if (gbd[i][j].val == ((Rule *)curgt->branch[k]->leaf)->val) {
+	//				curgt = curgt->branch[k];
+	//				if (j == TS - 1) goto jump1_1;  // 到达一行最后一项直接结算分数
+	//				else goto jump1_2;
+	//			}
+	//		}
+	//		if (j > 0) --j;  // 未匹配到节点，回退一项
+	//	jump1_1:
+	//		switch (((Rule *)curgt->leaf)->who) {
+	//		case Black: blackScore += ((Rule *)curgt->leaf)->score; break;
+	//		case White: whiteScore += ((Rule *)curgt->leaf)->score; break;
+	//		}
+	//		curgt = rules; 
+	//	jump1_2:
+	//		continue;
+	//	}
+	//}
 	// 从上到下
-	for (int i = 0; i < TS; ++i) {
-		for (int j = 0; j < TS; ++j) {
-			for (int k = 0, n = curgt->nleaf; k < n; ++k) {
-				if (gbd[j][i].val == ((Rule *)curgt->branch[k]->leaf)->val) {
-					curgt = curgt->branch[k];
-					if (j == TS - 1) goto jump2_1;  // 到达一行最后一项直接结算分数
-					else goto jump2_2;
-				}
-			}
-			--j;  // 未匹配到节点，回退一项
-		jump2_1:
-			switch (((Rule *)curgt->leaf)->who) {
-			case Black: blackScore += ((Rule *)curgt->leaf)->score; break;
-			case White: whiteScore += ((Rule *)curgt->leaf)->score; break;
-			}
-			curgt = rules;
-		jump2_2:
-			continue;
-		}
-	}
-
+	//for (int i = 0; i < TS; ++i) {
+	//	for (int j = 0; j < TS; ++j) {
+	//		for (int k = 0, n = curgt->nleaf; k < n; ++k) {
+	//			if (gbd[j][i].val == ((Rule *)curgt->branch[k]->leaf)->val) {
+	//				curgt = curgt->branch[k];
+	//				if (j == TS - 1) goto jump2_1;  // 到达一行最后一项直接结算分数
+	//				else goto jump2_2;
+	//			}
+	//		}
+	//		if (j > 0) --j;  // 未匹配到节点，回退一项
+	//	jump2_1:
+	//		switch (((Rule *)curgt->leaf)->who) {
+	//		case Black: blackScore += ((Rule *)curgt->leaf)->score; break;
+	//		case White: whiteScore += ((Rule *)curgt->leaf)->score; break;
+	//		}
+	//		curgt = rules;
+	//	jump2_2:
+	//		continue;
+	//	}
+	//}
 	// sla: 左下->右上
-	for (int i = 0; i < TS; ++i) {  // first stage
-		for (int j = 0; j < i + 1; ++j) {
-			for (int k = 0, n = curgt->nleaf; k < n; ++k) {
-				if (gbd[i - j][j].val == ((Rule *)curgt->branch[k]->leaf)->val) {
-					curgt = curgt->branch[k];
-					if (i - j == 0) goto jump3_1;  // 到达一行最后一项直接结算分数
-					else goto jump3_2;
-				}
-			}
-			if (j > 0) --j;  // 未匹配到节点，回退一项
-		jump3_1:
-			switch (((Rule *)curgt->leaf)->who) {
-			case Black: blackScore += ((Rule *)curgt->leaf)->score; break;
-			case White: whiteScore += ((Rule *)curgt->leaf)->score; break;
-			}
-			curgt = rules;
-		jump3_2:
-			continue;
-		}
-	}
+	//for (int i = 0; i < TS; ++i) {  // first stage
+	//	for (int j = 0; j < i + 1; ++j) {
+	//		for (int k = 0, n = curgt->nleaf; k < n; ++k) {
+	//			if (gbd[i - j][j].val == ((Rule *)curgt->branch[k]->leaf)->val) {
+	//				curgt = curgt->branch[k];
+	//				if (i - j == 0) goto jump3_1;  // 到达一行最后一项直接结算分数
+	//				else goto jump3_2;
+	//			}
+	//		}
+	//		if (j > 0) --j;  // 未匹配到节点，回退一项
+	//	jump3_1:
+	//		switch (((Rule *)curgt->leaf)->who) {
+	//		case Black: blackScore += ((Rule *)curgt->leaf)->score; break;
+	//		case White: whiteScore += ((Rule *)curgt->leaf)->score; break;
+	//		}
+	//		curgt = rules;
+	//	jump3_2:
+	//		continue;
+	//	}
+	//}
 	for (int i = 0; i < TS - 1; ++i) {  // second stage
 		for (int j = 1; j < TS - i; ++j) {
 			for (int k = 0, n = curgt->nleaf; k < n; ++k) {
@@ -334,30 +323,49 @@ int evaluate(Board *vbd) {
 		jump3_4:
 			continue;
 		}
-	}*/
-	// bsla: 左上->右下
-	for (int i = 0; i < TS; ++i) {  // first stage
-		for (int j = 0; j < i + 1; ++j) {
-			for (int k = 0, n = curgt->nleaf; k < n; ++k) {
-				if (gbd[][i + j].val == ((Rule *)curgt->branch[k]->leaf)->val) {
-					curgt = curgt->branch[k];
-					if (i + j == TS - 1) goto jump4_1;  // 到达一行最后一项直接结算分数
-					else goto jump4_2;
-				}
-			}
-			if (j > 1) --j;  // 未匹配到节点，回退一项
-		jump4_1:
-			switch (((Rule *)curgt->leaf)->who) {
-			case Black: blackScore += ((Rule *)curgt->leaf)->score; break;
-			case White: whiteScore += ((Rule *)curgt->leaf)->score; break;
-			}
-			curgt = rules;
-		jump4_2:
-			continue;
-		}
 	}
-	static nnn = 0;
-	//printf("%2d.Black:%3d, White:%3d\n", ++nnn, blackScore, whiteScore);
+	// bsla: 左上->右下
+	//for (int i = 0; i < TS; ++i) {  // first stage
+	//	for (int j = 0; j < i + 1; ++j) {
+	//		for (int k = 0, n = curgt->nleaf; k < n; ++k) {
+	//			if (gbd[j][TS - 1 - i + j].val == ((Rule *)curgt->branch[k]->leaf)->val) {
+	//				curgt = curgt->branch[k];
+	//				if (j - i == 0) goto jump4_1;  // 到达一行最后一项直接结算分数
+	//				else goto jump4_2;
+	//			}
+	//		}
+	//		if (j > 0) --j;  // 未匹配到节点，回退一项
+	//	jump4_1:
+	//		switch (((Rule *)curgt->leaf)->who) {
+	//		case Black: blackScore += ((Rule *)curgt->leaf)->score; break;
+	//		case White: whiteScore += ((Rule *)curgt->leaf)->score; break;
+	//		}
+	//		curgt = rules;
+	//	jump4_2:
+	//		continue;
+	//	}
+	//}
+	//for (int i = 1; i < TS; ++i) {  // second stage
+	//	for (int j = 0; j < TS - i; ++j) {
+	//		for (int k = 0, n = curgt->nleaf; k < n; ++k) {
+	//			if (gbd[i + j][j].val == ((Rule *)curgt->branch[k]->leaf)->val) {
+	//				curgt = curgt->branch[k];
+	//				if (i + j == TS - 1) goto jump4_3;  // 到达一行最后一项直接结算分数
+	//				else goto jump4_4;
+	//			}
+	//		}
+	//		if (j > 0) --j;  // 未匹配到节点，回退一项
+	//	jump4_3:
+	//		switch (((Rule *)curgt->leaf)->who) {
+	//		case Black: blackScore += ((Rule *)curgt->leaf)->score; break;
+	//		case White: whiteScore += ((Rule *)curgt->leaf)->score; break;
+	//		}
+	//		curgt = rules;
+	//	jump4_4:
+	//		continue;
+	//	}
+	//}
+	//static nnn = 0; printf("%2d.Black:%3d, White:%3d\n", ++nnn, blackScore, whiteScore);
 	///////////////////////
 	switch (aiVal) {
 	case Black: return blackScore - whiteScore;

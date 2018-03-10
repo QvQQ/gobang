@@ -2,48 +2,48 @@
 
 #x#         2   B
 #xx#        4   B
-#xxx#       8   B
-#xxxx#      32  B
-#xxxxx#     64  B
+#xxx#       16  B
+#xxxx#      64  B
+#xxxxx#     256  B
 
 #x 			2	B
 #xx 		4	B
 #xxx 		8	B
-#xxxx 		16	B
-#xxxxx 		64	B
+#xxxx 		64	B
+#xxxxx 		256	B
 
 #xo         1   B
 #xxo        2   B
-#xxxo       4   B
-#xxxxo      16  B
-#xxxxxo     64  B
+#xxxo       8   B
+#xxxxo      64  B
+#xxxxxo     256  B
 
 x#          1   B
 xx#         2   B
-xxx#        4   B
-xxxx#       16  B
-xxxxx#      64  B
+xxx#        8   B
+xxxx#       64  B
+xxxxx#      256  B
 
 #o#         2   W
 #oo#        4   W
-#ooo#       8   W
-#oooo#      32  W
-#ooooo#     64  W
+#ooo#       16  W
+#oooo#      64  W
+#ooooo#     256  W
 
 #o 			2	W
 #oo 		4	W
 #ooo 		8	W
-#oooo 		16 	W
-#ooooo 		64 	W
+#oooo 		64 	W
+#ooooo 		256 	W
 
 #ox         1   W
 #oox        2   W
-#ooox       4   W
-#oooox      16  W
-#ooooox     64  W
+#ooox       8   W
+#oooox      64  W
+#ooooox     256  W
 
 o#          1   W
 oo#         2   W
-ooo#        4   W
-oooo#       16  W
-ooooo#      64  W
+ooo#        8   W
+oooo#       64  W
+ooooo#      256  W
