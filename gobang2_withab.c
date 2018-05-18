@@ -27,7 +27,7 @@ typedef struct {
 
 typedef struct {
 	Grid grids[TS][TS];
-    int weight[TS][TS];
+	int weight[TS][TS];
 	int score;
 } Board;
 
@@ -77,21 +77,21 @@ int main() {
 
 	//////////////////////////////
 	int u[][TS] = {
-        { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-        { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-        { 0, 0, 0, 0,-1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-        { 0, 0, 0,-1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-        { 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0 },
-        { 0, 0, 0, 0,-1, 1, 0,-1, 0, 0, 0, 0, 0, 0, 0 },
-        { 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0 },
-        { 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0 },
-        { 0, 0, 0, 0, 0, 0, 0, 0,-1, 0, 0, 0, 0, 0, 0 },
-        { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-        { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-        { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-        { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-        { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-        { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+		{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+		{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+		{ 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+		{ 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+		{ 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0 },
+		{ 0, 0, 0, 0, -1, 1, 0, -1, 0, 0, 0, 0, 0, 0, 0 },
+		{ 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0 },
+		{ 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0 },
+		{ 0, 0, 0, 0, 0, 0, 1, 0, -1, 0, 0, 0, 0, 0, 0 },
+		{ 0, 0, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0 },
+		{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+		{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+		{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+		{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+		{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 	};
 
 	Board *bd = NULL; GTree *gt = NULL; Point pos;
@@ -122,7 +122,7 @@ Point solve(Board *vbd, GTree *vgt, const int maxdep, Board **rbd) {
 	GTree *gt = NULL;
 	vbd->score = MIN_INT;
 	Point pos = { -1, -1 };
-    int alpha = MIN_INT, beta = MAX_INT;
+	int alpha = MIN_INT, beta = MAX_INT;
 
 	if (maxdep <= 0)
 		return pos;
@@ -135,7 +135,7 @@ Point solve(Board *vbd, GTree *vgt, const int maxdep, Board **rbd) {
 	Oval nextVal = aiVal = (sum ? White : Black);
 	rules = init_rules(RUL);
 
-    vbd = selectp(vbd);
+	vbd = selectp(vbd);
 
 	for (int i = 0; i < TS; ++i) {
 		for (int j = 0; j < TS; ++j) {
@@ -167,11 +167,11 @@ int down(Board *vbd, GTree *vgt, const Oval nextVal, const int maxdep, const int
 	Board *bd = NULL;
 	GTree *gt = NULL;
 	int isMax = !(curdep % 2);
-    
+
 	// 对一个state使用solve/down后会计算此state下一层
 	// curdep实际代表以0开始的、当前state层
 
-    vbd = selectp(vbd);
+	vbd = selectp(vbd);
 
 	for (int i = 0; i < TS; ++i) {
 		for (int j = 0; j < TS; ++j) {
@@ -184,43 +184,43 @@ int down(Board *vbd, GTree *vgt, const Oval nextVal, const int maxdep, const int
 				            ? down(bd, gt, -nextVal, maxdep - 1, curdep + 1, alpha, beta)
 				            : evaluate(bd);
 
-                if (isMax) alpha = alpha > bd->score ? alpha : bd->score;
-                else       beta  = beta  < bd->score ? beta  : bd->score;
+				if (isMax) alpha = alpha > bd->score ? alpha : bd->score;
+				else       beta  = beta  < bd->score ? beta  : bd->score;
 
-                if (alpha > beta) goto rs;
+				if (alpha > beta) goto rs;
 				if (!GT) free(bd);
 			}
 		}
 	}
 rs:
 	if (isMax)
-        return alpha;
-    return beta;
+		return alpha;
+	return beta;
 }
 
 Board *selectp(Board *vbd) {
 
-    for (int i = 0; i < TS; ++i) {
-        for (int j = 0; j < TS; ++j) {
-            if (vbd->grids[i][j].val != Nil) {
-                for (int k = -4; k <= 4; ++k) {
+	for (int i = 0; i < TS; ++i) {
+		for (int j = 0; j < TS; ++j) {
+			if (vbd->grids[i][j].val != Nil) {
+				for (int k = -4; k <= 4; ++k) {
 
-                    if (i + k >= 0 && i + k < TS) {
-                        vbd->weight[i + k][j] = 1;
-                        if (j + k >= 0 && j + k < TS)
-                            vbd->weight[i + k][j + k] = 1;
-                    }
-                    if (j + k >= 0 && j + k < TS) {
-                        vbd->weight[i][j + k] = 1;
-                        if (i - k >= 0 && i - k < TS)
-                            vbd->weight[i - k][j + k] = 1;
-                    }
-                }
-            }
-        }
-    }
+					if (i + k >= 0 && i + k < TS) {
+						vbd->weight[i + k][j] = 1;
+						if (j + k >= 0 && j + k < TS)
+							vbd->weight[i + k][j + k] = 1;
+					}
+					if (j + k >= 0 && j + k < TS) {
+						vbd->weight[i][j + k] = 1;
+						if (i - k >= 0 && i - k < TS)
+							vbd->weight[i - k][j + k] = 1;
+					}
+				}
+			}
+		}
+	}
 
-    return vbd;
+	return vbd;
 }
 
 GTree *init_rules(const char *path) {
@@ -238,7 +238,7 @@ GTree *init_rules(const char *path) {
 	char who = 'N';
 	Oval val = Nil;
 	Rule rule = {233, Nil, 0};
-	
+
 	GTree *curgt = NULL, *root = gt_cre(&rule, sizeof(Rule));  // #xooo#
 
 	while (fscanf(file, "%s %d %c", state, &score, &who) != EOF) {
@@ -258,11 +258,11 @@ GTree *init_rules(const char *path) {
 			}
 			curgt = gt_add(curgt, &rule, sizeof(Rule));
 			((Rule *)curgt->leaf)->val = val;
-		jump:
+jump:
 			if (i == len - 1) {  // the last one
 				((Rule *)curgt->leaf)->score = score;
-				((Rule *)curgt->leaf)->who = (who == 'B') ? Black : 
-					                        ((who == 'W') ? White : Nil);
+				((Rule *)curgt->leaf)->who = (who == 'B') ? Black :
+				                             ((who == 'W') ? White : Nil);
 			}
 		}
 	}
@@ -278,7 +278,7 @@ int evaluate(Board *vbd) {
 	int whiteScore = 0;
 	GTree *curgt = rules;
 	const Grid(*gbd)[TS] = vbd->grids;
-	
+
 	// 从左到右
 	for (int i = 0; i < TS; ++i) {
 		for (int j = 0; j < TS; ++j) {
@@ -290,13 +290,13 @@ int evaluate(Board *vbd) {
 				}
 			}
 			if (j > 0) --j;  // 未匹配到节点，回退一项
-		jump1_1:
+jump1_1:
 			switch (((Rule *)curgt->leaf)->who) {
 			case Black: blackScore += ((Rule *)curgt->leaf)->score; break;
 			case White: whiteScore += ((Rule *)curgt->leaf)->score; break;
 			}
-			curgt = rules; 
-		jump1_2:
+			curgt = rules;
+jump1_2:
 			continue;
 		}
 	}
@@ -311,13 +311,13 @@ int evaluate(Board *vbd) {
 				}
 			}
 			if (j > 0) --j;  // 未匹配到节点，回退一项
-		jump2_1:
+jump2_1:
 			switch (((Rule *)curgt->leaf)->who) {
 			case Black: blackScore += ((Rule *)curgt->leaf)->score; break;
 			case White: whiteScore += ((Rule *)curgt->leaf)->score; break;
 			}
 			curgt = rules;
-		jump2_2:
+jump2_2:
 			continue;
 		}
 	}
@@ -332,13 +332,13 @@ int evaluate(Board *vbd) {
 				}
 			}
 			if (j > 0) --j;  // 未匹配到节点，回退一项
-		jump3_1:
+jump3_1:
 			switch (((Rule *)curgt->leaf)->who) {
 			case Black: blackScore += ((Rule *)curgt->leaf)->score; break;
 			case White: whiteScore += ((Rule *)curgt->leaf)->score; break;
 			}
 			curgt = rules;
-		jump3_2:
+jump3_2:
 			continue;
 		}
 	}
@@ -352,13 +352,13 @@ int evaluate(Board *vbd) {
 				}
 			}
 			if (j > 1) --j;  // 未匹配到节点，回退一项
-		jump3_3:
+jump3_3:
 			switch (((Rule *)curgt->leaf)->who) {
 			case Black: blackScore += ((Rule *)curgt->leaf)->score; break;
 			case White: whiteScore += ((Rule *)curgt->leaf)->score; break;
 			}
 			curgt = rules;
-		jump3_4:
+jump3_4:
 			continue;
 		}
 	}
@@ -373,13 +373,13 @@ int evaluate(Board *vbd) {
 				}
 			}
 			if (j > 0) --j;  // 未匹配到节点，回退一项
-		jump4_1:
+jump4_1:
 			switch (((Rule *)curgt->leaf)->who) {
 			case Black: blackScore += ((Rule *)curgt->leaf)->score; break;
 			case White: whiteScore += ((Rule *)curgt->leaf)->score; break;
 			}
 			curgt = rules;
-		jump4_2:
+jump4_2:
 			continue;
 		}
 	}
@@ -393,13 +393,13 @@ int evaluate(Board *vbd) {
 				}
 			}
 			if (j > 0) --j;  // 未匹配到节点，回退一项
-		jump4_3:
+jump4_3:
 			switch (((Rule *)curgt->leaf)->who) {
 			case Black: blackScore += ((Rule *)curgt->leaf)->score; break;
 			case White: whiteScore += ((Rule *)curgt->leaf)->score; break;
 			}
 			curgt = rules;
-		jump4_4:
+jump4_4:
 			continue;
 		}
 	}
@@ -457,9 +457,9 @@ int isfinish(Board *vbd, const int row, const int col) {
 
 Board *bd_cpy(const Board *vbd) {
 	Board *bd = (Board *)malloc(sizeof(Board));
-    memcpy(bd->grids, vbd->grids, sizeof(bd->grids));
-    memset(bd->weight, 0, sizeof(bd->weight));
-    bd->score = vbd->score;
+	memcpy(bd->grids, vbd->grids, sizeof(bd->grids));
+	memset(bd->weight, 0, sizeof(bd->weight));
+	bd->score = vbd->score;
 	if (!bd) exit(-233);
 	return bd;
 }
